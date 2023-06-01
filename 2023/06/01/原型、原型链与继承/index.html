@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>原型、原型链与继承 | 狐白吟的小窝</title>
+  
+  <meta name="author" content="狐白吟" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="" />
+  
+  <meta name="description" content="原型模式在 JavaScript 中，万物皆为对象，函数也不例外，每个函数在创建的同时，Object 对象都会为其创建一个原型对象，由函数的 prototype 属性指向，该对象包含应该由特定引用类型的实例共享的属性和方法。使用原型对象的好处是，在它上面定义的属性和方法可以被对象实例共享，举个栗子： 123456789101112131415function Person(eye)&amp;#123;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="原型、原型链与继承">
+<meta property="og:url" content="http://example.com/2023/06/01/%E5%8E%9F%E5%9E%8B%E3%80%81%E5%8E%9F%E5%9E%8B%E9%93%BE%E4%B8%8E%E7%BB%A7%E6%89%BF/index.html">
+<meta property="og:site_name" content="狐白吟的小窝">
+<meta property="og:description" content="原型模式在 JavaScript 中，万物皆为对象，函数也不例外，每个函数在创建的同时，Object 对象都会为其创建一个原型对象，由函数的 prototype 属性指向，该对象包含应该由特定引用类型的实例共享的属性和方法。使用原型对象的好处是，在它上面定义的属性和方法可以被对象实例共享，举个栗子： 123456789101112131415function Person(eye)&amp;#123;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5508dfecec8343589f8ec9c5b0113117~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4d14f91b600a499d8d43cc7a2dd13856~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d482d5ec1fa94582b29e4a0390520959~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f5437ac7261d48678dc7b90062aff94f~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e59d7ea2324445bb8d0b36d9ac5b154c~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/26e22a6028d2404fa0b6e92dd0f82bbd~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/80400d17c99843fcac39d95341e80da6~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bf1fdf094f12450e9631840956bc3742~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4a03734f8695482fabc3aaa24c4ffec4~tplv-k3u1fbpfcp-watermark.image">
+<meta property="article:published_time" content="2023-06-01T14:32:03.000Z">
+<meta property="article:modified_time" content="2023-06-01T14:36:50.380Z">
+<meta property="article:author" content="狐白吟">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5508dfecec8343589f8ec9c5b0113117~tplv-k3u1fbpfcp-watermark.image">
+  
+  <!-- 站点验证相关 -->
+  
+    
+    
+    
+  
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kratosr.min.css" media="all"></script>
+  
+    <link rel="stylesheet" id="darkmode-css" href="/css/kr-color-dark.min.css" media="(prefers-color-scheme: dark)"></script>
+    <script src="/js/kr-dark.min.js"></script>
+  
+  
+    <link rel="stylesheet" id="highlight-css" href="/css/highlight/night-eighties.min.css" media="all"></script>
+  
+  <link rel="stylesheet" id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="all"></script>
+  <link rel="stylesheet" id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="all"></script>
+  
+  
+    <link rel="stylesheet" href="/vendors/aplayer@1.10.1/dist/APlayer.min.css"></script>
+  
+  
+    <link rel="stylesheet" href="/vendors/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css"></script>
+  
+  <!-- 不得不预先加载的一些JS文件 -->
+  <script src="/vendors/jquery@3.6.0/dist/jquery.min.js"></script>
+  
+    <script src="/vendors/qrcode_js@1.0.0/qrcode.min.js"></script>
+  
+  
+  <style>
+    
+    
+  </style>
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    
+                                    
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">狐白吟的小窝</a></div>
+                    <div class="nav-toggle">
+                        <a class="kratos-nav-toggle js-kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>狐白吟的小窝</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+                    
+
+        
+
+            <section class="col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/01/%E5%8E%9F%E5%9E%8B%E3%80%81%E5%8E%9F%E5%9E%8B%E9%93%BE%E4%B8%8E%E7%BB%A7%E6%89%BF/">
+    <div class="kratos-hentry kratos-post-inner clearfix">
+        <header class="kratos-entry-header">
+            
+                <h1 class="kratos-entry-title text-center" itemprop="name headline">原型、原型链与继承</h1>
+            
+            
+            <ul class="kratos-post-meta text-center">
+                <li><time datetime="2023-06-01T14:32:03.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2023-06-01</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">狐白吟</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~5.95K
+                        
+                        字
+                    </li>
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-post-content">
+            
+            <div id="expire-alert" class="alert alert-warning hidden" role="alert">
+                <div class="icon"><i class="fa fa-warning"></i></div>
+                <div class="text"><p>本文最后编辑于 <time datetime="1685630210380"></time> 前，其中的内容可能需要更新。</p></div>
+            </div>
+            
+            
+            
+            <hr />
+            <div itemprop="articleBody"><h2 id="原型模式"><a href="#原型模式" class="headerlink" title="原型模式"></a>原型模式</h2><p>在 JavaScript 中，万物皆为对象，函数也不例外，每个函数在创建的同时，<code>Object</code> 对象都会为其创建一个原型对象，由函数的 <code>prototype</code> 属性指向，该对象包含应该由特定引用类型的实例共享的属性和方法。<br>使用原型对象的好处是，在它上面定义的属性和方法可以被对象实例共享，举个栗子：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Person</span>(<span class="params">eye</span>)&#123;</span><br><span class="line">    <span class="title class_">Person</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">name</span> = <span class="string">&#x27;狐白吟&#x27;</span>;</span><br><span class="line">    <span class="title class_">Person</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">hobby</span> = <span class="string">&#x27;van游戏&#x27;</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">eye</span> = eye;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> p1 = <span class="keyword">new</span> <span class="title class_">Person</span>(<span class="string">&#x27;blue&#x27;</span>);</span><br><span class="line">p1.<span class="property">eye</span>; <span class="comment">// &#x27;blue&#x27;</span></span><br><span class="line">p1.<span class="property">name</span>; <span class="comment">// &#x27;狐白吟&#x27;</span></span><br><span class="line"><span class="keyword">const</span> p2 = <span class="keyword">new</span> <span class="title class_">Person</span>(<span class="string">&#x27;black&#x27;</span>);</span><br><span class="line">p2.<span class="property">eye</span>; <span class="comment">// &#x27;black&#x27;</span></span><br><span class="line">p2.<span class="property">name</span>; <span class="comment">// &#x27;狐白吟&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(p2.<span class="property">name</span> === p1.<span class="property">name</span>); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>这里<code>name</code> 和 <code>hobby</code> 属性都直接添加到了 <code>Person</code> 的 <code>prototype</code> 属性上，构造函数体中没有它们，但这样定义后，调用构造函数创建的新的对象仍然拥有相应的属性，方法也不例外，可以自己手动试一下。<br>与构造函数模式不同，使用这种原型模式定义的属性和方法是由所有实例所共享的。</p>
+<h2 id="理解原型"><a href="#理解原型" class="headerlink" title="理解原型"></a>理解原型</h2><p>无论何时，只要创建一个函数，就会按照特定的规则为这个函数创建一个<code>prototype</code>属性（指向原型对象）。默认情况下，所有原型对象会自动获得一个名为 <code>constructor</code> 的属性，指回与之关联的构造函数，按照我上面给出的例子，<code>Person.prototype.constructor</code>指向<code>Person</code>。然后，因构造函数而异，可能会给原型对象添加其它属性和方法。 <br></p>
+<p>在自定义构造函数时，原型对象只会默认获得 <code>constructor</code> 属性，其它的所有方法都继承自 <code>Object</code> 。每次调用构造函数创建一个新的实例时，实例内部的<code>[[Prototype]]</code>指针就会被赋值为构造函数的原型对象，我们称之为隐式原型。按照《JavaScript高级程序设计》这本书上的说法，没有专门访问这个指针的标准方法，都是Firefox、Safari和Chrome在每个对象上暴露<code>__proto__</code>属性，可以通过这个属性可以访问对象的原型。<br>即<strong>实例与构造函数原型之间有直接的联系</strong><br><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5508dfecec8343589f8ec9c5b0113117~tplv-k3u1fbpfcp-watermark.image" alt="181510403153733.png"> <br><br>前面提到，函数也是对象，那么函数也有隐式原型么？答案是肯定的。那么是谁创建了函数呢？—-Function—- 注意这个大写的”F”</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4d14f91b600a499d8d43cc7a2dd13856~tplv-k3u1fbpfcp-watermark.image" alt="181511124714709.png"> <br><br>两种写法虽然效果相同，但绝对不推荐第二种写法。<br></p>
+<p>根据上面说的一句话——对象的<code>__proto__</code>指向的是创建它的函数的<code>prototype</code>，就会出现：<code>Object.__proto__ === Function.prototype</code>,看下图</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d482d5ec1fa94582b29e4a0390520959~tplv-k3u1fbpfcp-watermark.image" alt="181512068463597.png"> <br><br>这里有的读者可能就有点懵了：<br></p>
+<p>“自定义函数Foo.__proto__指向Function.prototype，Object.__proto__指向Function.prototype，唉，怎么还有一个……Function.__proto__指向Function.prototype？这不成了循环引用了？”<br></p>
+<p>实际上就是一个环形结构，仔细想想，Function也是一个函数，函数是一种对象，也有__proto__属性。既然是函数，那么它一定是被Function创建。所以——Function是被自身创建的。所以它的__proto__指向了自身的Prototype。这也是JavaScript特殊处之一。 <br></p>
+<p><strong>注意</strong><br>既然<code>Function</code>是个函数，那么它的prototype指向的原型对象自然也有__proto__属性并且指向的是<code>Object.prototype</code></p>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f5437ac7261d48678dc7b90062aff94f~tplv-k3u1fbpfcp-watermark.image" alt="181512489403338.png"> <br><br>说到这里，就得提到一个运算符——<code>instanceof</code>。<br><br>当我们对一个引用类型使用使用typeof时，我们只能获取到一个object&#x2F;function，我们并不知道它具体是哪一种，这个时候就要请出<code>instanceof</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">funcrion <span class="title class_">Foo</span>()&#123;&#125;</span><br><span class="line"><span class="keyword">let</span> fn = <span class="keyword">new</span> <span class="title class_">Foo</span>()</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(fn <span class="keyword">instanceof</span> <span class="title class_">Foo</span>) <span class="comment">// true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(fn <span class="keyword">instanceof</span> <span class="title class_">Object</span>)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>先不管为什么<code>fn instanceof Object</code>返回的是true，这里先告知大家instanceof的判断规则<br></p>
+<p><code>instanceof</code>运算符的第一个变量是一个对象，暂时称为A；第二个变量一般是一个函数，暂时称为B。<br></p>
+<p><code>instanceof</code>的判断队则是：沿着A的__proto__这条线来找，同时沿着B的prototype这条线来找，如果两条线能找到同一个引用，即同一个对象，那么就返回true。如果找到终点还未重合，则返回false。看下图</p>
+<p><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e59d7ea2324445bb8d0b36d9ac5b154c~tplv-k3u1fbpfcp-watermark.image" alt="181635468939277.png"><br><br>根据这个规则，来看一下下面这个现象</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title class_">Object</span> <span class="keyword">instanceof</span> <span class="title class_">Function</span>)  <span class="comment">//true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title class_">Function</span> <span class="keyword">instanceof</span> <span class="title class_">Function</span>)  <span class="comment">//true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title class_">Function</span> <span class="keyword">instanceof</span> <span class="title class_">Object</span>)  <span class="comment">//true</span></span><br></pre></td></tr></table></figure>
+
+<p>很懵是吧，我一开始看到这里也是，但结合上面提到的：<code>Function</code>也是一个函数，<code>Function</code>是被自身创建的，每个函数在创建的同时，<code>Object</code> 对象都会为其创建一个原型对象。这三点来看，这个现象也很好解释了，将之前的那些图片结合起来：</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/26e22a6028d2404fa0b6e92dd0f82bbd~tplv-k3u1fbpfcp-watermark.image" alt="181637013624694.png"></p>
+<p>不要怕！！！晕了没事，反复再看几遍，一定要把这个看懂，非常重要！<br></p>
+<p>而这张图片，也将我们的重点内容——<strong>继承</strong>——<strong>原型链</strong>给引出来了</p>
+<h2 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h2><p>继承是面向对象编程中讨论最多的话题，很多面向对象语言都支持两种继承：接口继承和实现继承，前者在JS中是不可能的，原因此处不表，所以实现继承是JS唯一支持的继承方式，而这就是通过原型链来实现的。</p>
+<h6 id="原型链"><a href="#原型链" class="headerlink" title="原型链"></a>原型链</h6><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Person</span>(<span class="params">eyes</span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">eyes</span> = eyes;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> laowang = <span class="keyword">new</span> <span class="title class_">Person</span>(<span class="string">&#x27;green&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Person</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">age</span> = <span class="number">34</span></span><br><span class="line"><span class="title class_">Person</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">money</span> = <span class="number">1145140</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(laowang.<span class="property">money</span>) <span class="comment">// 1145140</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(laowang.<span class="property">eyes</span>) <span class="comment">// green</span></span><br></pre></td></tr></table></figure>
+
+<p><code>laowang</code>是<code>Person</code>函数<code>new</code>出来的一个对象，<code>eyes</code>是<code>laowang</code>对象的基本属性，那<code>money</code>是从哪里来的呢？答案是<code>Person.prototype</code>，因为<code>laowang.__proto__</code>指向的是<code>Person.prototype</code><br></p>
+<blockquote>
+<p>访问一个对象的属性时，先在基本属性中查找，如果没有，再沿着__proto__这条链向上找</p>
+</blockquote>
+<blockquote>
+<p>每个构造函数都有一个原型对象，原型有一个属性指回构造函数，而实例内部有一个内部指针指向原型，如果原型是另一个类型的实例，这就意味着这个原型本身有一个内部指针指向另一个原型，相应地另一个原型也有一个指针指向另一个构造函数，这样就在实例和原型之间构造了一条原型链</p>
+</blockquote>
+<p>那么我们在实际应用中如何区分一个属性到底是基本的还是从原型中找到的呢？大家可能都知道答案了——hasOwnProperty，特别是在for…in…循环中，一定要注意。</p>
+<p><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/80400d17c99843fcac39d95341e80da6~tplv-k3u1fbpfcp-watermark.image" alt="image.png"><br><br>诶？hasOwnProperty这个方法哪里来的呢？答案是Object.prototype</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bf1fdf094f12450e9631840956bc3742~tplv-k3u1fbpfcp-watermark.image" alt="182014277067963.png"><br><br>对象的原型链是沿着__proto__这条线走的，因此在查找laowang.hasOwnProperty属性时，就会顺着原型链一直查找到Object.prototype。</p>
+<p>由于所有的对象的原型链都会找到Object.prototype，因此所有的对象都会有Object.prototype的方法。这就是所谓的“继承”。</p>
+<p>当然这只是一个例子，你可以自定义函数和对象来实现自己的继承。</p>
+<p>原型链继承是官方定义的JS的主要继承方式，其基本思想就是通过原型继承多个引用类型的属性和方法。</p>
+<h5 id="原型链继承的缺点"><a href="#原型链继承的缺点" class="headerlink" title="原型链继承的缺点"></a>原型链继承的缺点</h5><p>我们来看一个例子</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Person</span>(<span class="params"></span>) &#123;   </span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">hand</span> = <span class="number">2</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">YellowRace</span>(<span class="params"></span>) &#123; &#125;</span><br><span class="line"><span class="title class_">YellowRace</span>.<span class="property"><span class="keyword">prototype</span></span> = <span class="keyword">new</span> <span class="title class_">Person</span>()</span><br><span class="line"><span class="keyword">const</span> hjy = <span class="keyword">new</span> <span class="title class_">YellowRace</span>()</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(hjy.<span class="property">head</span>) </span><br></pre></td></tr></table></figure>
+
+<p>根据原型链的特性，当我们查找<code>hjy</code>实例的<code>head</code>和<code>hand</code>属性时，由于<code>hjy</code>本身并没有这两个属性，引擎就会去查找<code>hjy</code>的原型，还是没有，继续查找<code>hjy</code>原型的原型，也就是<code>Person原型对象</code>，结果就找到了。就这样，<code>YellowRace</code>和<code>Person</code>之间通过原型链实现了继承关系。</p>
+<p>但这种继承是有问题的：</p>
+<ol>
+<li>创建<code>hjy</code>实例时不能传参，也就是<code>YellowRace</code>构造函数本身不接受参数。</li>
+<li>当原型上的属性是引用数据类型时，所有实例都会共享这个属性，即某个实例对这个属性重写会影响其他实例。</li>
+</ol>
+<p>针对第二点，我们通过一段代码来看一下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Person</span>(<span class="params"></span>) &#123;  </span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">colors</span> = [<span class="string">&#x27;white&#x27;</span>, <span class="string">&#x27;yellow&#x27;</span>, <span class="string">&#x27;black&#x27;</span>]</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">YellowRace</span>(<span class="params"></span>) &#123; &#125;</span><br><span class="line"><span class="title class_">YellowRace</span>.<span class="property"><span class="keyword">prototype</span></span> = <span class="keyword">new</span> <span class="title class_">Person</span>()</span><br><span class="line"><span class="keyword">const</span> hjy = <span class="keyword">new</span> <span class="title class_">YellowRace</span>()</span><br><span class="line">hjy.<span class="property">colors</span>.<span class="title function_">push</span>(<span class="string">&#x27;green&#x27;</span>) </span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(hjy.<span class="property">colors</span>)  <span class="comment">// [&#x27;white&#x27;, &#x27;yellow&#x27;, &#x27;black&#x27;, &#x27;green&#x27;]</span></span><br><span class="line"><span class="keyword">const</span> laowang = <span class="keyword">new</span> <span class="title class_">YellowRace</span>()</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(laowang.<span class="property">colors</span>) <span class="comment">// [&#x27;white&#x27;, &#x27;yellow&#x27;, &#x27;black&#x27;, &#x27;green&#x27;]</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，<code>hjy</code>只是想给自己的生活增添一点绿色，但是却被<code>laowang</code>给享受到了，这肯定不是我们想看到的结果。</p>
+<h5 id="寄生式组合继承"><a href="#寄生式组合继承" class="headerlink" title="寄生式组合继承"></a>寄生式组合继承</h5><p>JS中一共有6种继承方式，其余这里不会专门去讲，但会用到，感兴趣的可以去查一下</p>
+<p>ES5新增了一个方法<code>Object.create()</code>将原型链继承的核心代码封装成了一个函数，但这个函数有了不同的适用场景：如果你有一个已知的对象，想在它的基础上再创建一个新对象，那么你只需要把已知对象传给该函数即可。</p>
+<p><code>Object.create()</code>可以接受两个参数，第一个参数是作为新对象原型的对象，第二个参数也是个对象，里面放入需要给新对象增加的属性（可选）。第二个参数与<code>Object.defineProperties()</code>方法的第二个参数是一样的，每个新增的属性都通过自己的属性描述符来描述，以这种方式添加的属性会遮蔽原型上的同名属性。这是原型式继承的封装函数，而我们寄生式组合继承用到的寄生式继承与之非常接近，是在此基础上增强对象，然后返回这个对象</p>
+<p>寄生式组合继承通过在使用上述函数继承父类的原型对象，然后将返回的新对象复制给子类的原型对象，然后在子类的构造函数中调用父类的构造函数实现上下文的绑定，从而保证继承自父类的属性是自己的，对其修改不会影响到其它的实例</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">inherit</span>(<span class="params">Father, Son</span>) &#123; </span><br><span class="line">    <span class="keyword">const</span> prototype = <span class="title class_">Object</span>.<span class="title function_">create</span>(<span class="title class_">Father</span>.<span class="property"><span class="keyword">prototype</span></span>) <span class="comment">// 获取父类原型对象副本  </span></span><br><span class="line">    prototype.<span class="property">constructor</span> = <span class="title class_">Son</span> <span class="comment">// 将获取的副本的constructor指向子类，以此增强副本原型对象</span></span><br><span class="line">    <span class="title class_">Son</span>.<span class="property"><span class="keyword">prototype</span></span> = prototype <span class="comment">// 将子类的原型对象指向副本原型对象</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Person</span>(<span class="params">eyes</span>) &#123;  </span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">eyes</span> = eyes  </span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">colors</span> = [<span class="string">&#x27;white&#x27;</span>, <span class="string">&#x27;yellow&#x27;</span>, <span class="string">&#x27;black&#x27;</span>]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">YellowRace</span>(<span class="params"></span>) &#123;  </span><br><span class="line">    <span class="title class_">Person</span>.<span class="title function_">call</span>(<span class="variable language_">this</span>, <span class="string">&#x27;black&#x27;</span>) <span class="comment">// 调用构造函数并传参</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">inherit</span>( <span class="title class_">Person</span> ,<span class="title class_">YellowRace</span>) <span class="comment">// 寄生式继承</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> hjy = <span class="keyword">new</span> <span class="title class_">YellowRace</span>()</span><br><span class="line">hjy.<span class="property">colors</span>.<span class="title function_">push</span>(<span class="string">&#x27;green&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> laowang = <span class="keyword">new</span> <span class="title class_">YellowRace</span>()</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(hjy.<span class="property">colors</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(laowang.<span class="property">colors</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(hjy.<span class="title function_">getEyes</span>())</span><br></pre></td></tr></table></figure>
+
+<p>上述寄生式组合继承只调用了一次<code>Person</code>构造函数，避免了在<code>Person.prototype</code>上面创建不必要、多余的属性。于此同时，原型链依然保持不变，效率非常之高效。</p>
+<p><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4a03734f8695482fabc3aaa24c4ffec4~tplv-k3u1fbpfcp-watermark.image" alt="寄生式组合继承.png"></p>
+<br>
+后记：
+其实有很多大佬已经把原型链讲的十分透彻了，我在这写博客也只是为了加深一下自己的理解，很推荐王福朋先生写的这篇博客，附上链接:[https://www.cnblogs.com/wangfupeng1988/p/3977924.html](url)
+<br>本篇也有一部分是参考自这篇博客，图片也来自这篇博客，真的写的很好。图侵删
+</div>
+        </div>
+        
+            <div class="kratos-copyright text-center clearfix">
+                <h5 itemprop="copyrightNotice">本作品采用 <a rel="license nofollow" target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a> 进行许可</h5>
+            </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+                <div class="post-like-donate text-center clearfix" id="post-like-donate">
+                
+                
+                    <a class="share" href="javascript:;"><i class="fa fa-share-alt"></i> 分享</a>
+                    <div class="share-wrap" style="display: none;">
+    <div class="share-group">
+        <a href="javascript:;" class="share-plain qq" onclick="share('qq');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-qq"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain qzone" onclick="share('qzone');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-star"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain weixin pop style-plain" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-weixin"></i>
+            </div>
+            <div class="share-int">
+                <div class="qrcode" id="wechat-qr"></div>
+                <p>打开微信“扫一扫”，打开网页后点击屏幕右上角分享按钮</p>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain weibo" onclick="share('weibo');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-weibo"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain facebook style-plain" onclick="share('facebook');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-facebook"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain twitter style-plain" onclick="share('twitter');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-twitter"></i>
+            </div>
+        </a>
+    </div>
+    <script type="text/javascript">
+        $(()=>{
+            new QRCode("wechat-qr", {
+                text: "http://example.com/2023/06/01/%E5%8E%9F%E5%9E%8B%E3%80%81%E5%8E%9F%E5%9E%8B%E9%93%BE%E4%B8%8E%E7%BB%A7%E6%89%BF/",
+                width: 150,
+                height: 150,
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        });
+        function share(dest) {
+            const qqBase        = "https://connect.qq.com/widget/shareqq/index.html?";
+            const weiboBase     = "https://service.weibo.com/share/share.php?";
+            const qzoneBase     = "https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?";
+            const facebookBase  = "https://www.facebook.com/sharer/sharer.php?";
+            const twitterBase   = "https://twitter.com/intent/tweet?";
+            const hostUrl       = "http://example.com/2023/06/01/%E5%8E%9F%E5%9E%8B%E3%80%81%E5%8E%9F%E5%9E%8B%E9%93%BE%E4%B8%8E%E7%BB%A7%E6%89%BF/";
+            const title         = "「原型、原型链与继承」";
+            const excerpt       = `原型模式在 JavaScript 中，万物皆为对象，函数也不例外，每个函数在创建的同时，Object 对象都会为其创建一个原型对象，由函数的 prototype 属性指向，该对象包含应该由特定引用类型的实例共享的属性和方法。使用原型对...`;
+            let _URL;
+            switch (dest) {
+                case "qq"       : _URL = qqBase+"url="+hostUrl+"&title="+title+"&desc=&summary="+excerpt+"&site=cxpy";     break;
+                case "weibo"    : _URL = weiboBase+"url="+hostUrl+"&title="+title+excerpt;                                 break;
+                case "qzone"    : _URL = qzoneBase+"url="+hostUrl+"&title="+title+"&desc=&summary="+excerpt+"&site=cxpy";  break;
+                case "facebook" : _URL = facebookBase+"u="+hostUrl;                                                        break;
+                case "twitter"  : _URL = twitterBase+"text="+title+excerpt+"&url="+hostUrl;                                break;
+            }
+            window.open(_URL);
+        };
+    </script>
+</div>
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    
+                </div>
+                <div class="pull-date">
+                    <time datetime="2023-06-01T14:36:50.380Z" itemprop="dateModified">最后编辑：2023-06-01</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" call,apply,bind方法" href="/2023/04/27/call-apply-bind方法/">&lt; 上一篇</a>
+            </div>
+            
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+        
+
+                
+            
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/avatar.webp" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center">来了就把这里当家吧~左下角可以放歌哦</p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                10
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                0
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                0
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                
+
+            
+                
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2023/06/01/%E5%8E%9F%E5%9E%8B%E3%80%81%E5%8E%9F%E5%9E%8B%E9%93%BE%E4%B8%8E%E7%BB%A7%E6%89%BF/"><i class="fa  fa-book"></i> 原型、原型链与继承</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2023/04/27/call-apply-bind%E6%96%B9%E6%B3%95/"><i class="fa  fa-book"></i> call,apply,bind方法</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2023/03/29/%E8%B7%AF%E7%94%B1/"><i class="fa  fa-book"></i> 路由</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2023/03/29/slot%E6%8F%92%E6%A7%BD/"><i class="fa  fa-book"></i> slot插槽</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2023/03/28/Vuex/"><i class="fa  fa-book"></i> Vuex</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+        
+        </div>
+    </div>
+</div>
+<footer>
+    <div id="footer"  class="ap-lrc"  >
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        <!-- Keep for compatibility -->
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        <!-- New links -->
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2023 狐白吟的小窝 版权所有.</li>
+                            <li>本站已运行<span id="span_dt">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>Theme <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a></li>
+                            <li>Site built with&nbsp;<i class="fa fa-heart throb" style="color:#d43f57"></i>&nbsp;by 狐白吟.</li>
+                        </div>
+                        <div>
+                            <li>Powered by <a href="https://hexo.io" target="_blank" rel="nofollow">Hexo</a></li>
+                            <li>Hosted on <a href="https://github.io" target="_blank">Github Pages</a></li>
+                        </div>
+                        <div>
+                            
+                            
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                
+                    <div class="box search-box">
+                        <a href="/search/">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                
+                    <div class="box theme-box" id="darkmode-switch">
+                        <span class="fa fa-adjust"></span>
+                    </div>
+                
+                
+                
+            </div>
+            <div class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+        <script defer src="/vendors/bootstrap@3.3.4/dist/js/bootstrap.min.js"></script>
+<script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+<script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+    <script async src="/js/candy.min.js"></script>
+
+
+
+    <script defer src="/vendors/aplayer@1.10.1/dist/APlayer.min.js"></script>
+    
+    <script defer src="/vendors/meting@2.0.1/dist/Meting.min.js"></script>
+    <meting-js
+        server="netease"
+        type="playlist"
+        id="7335368586"
+        order="random"
+        fixed="true"
+    >
+    </meting-js>
+
+
+
+    <script defer src="/vendors/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+<script defer src="/js/kratosr.min.js"></script>
+<script defer src="/js/pjax.min.js"></script>
+
+
+
+<!-- Extra support for third-party plguins  -->
+
+
+    </body>
+</html>
